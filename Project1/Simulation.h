@@ -11,6 +11,7 @@
 //class used to sort priority queue for SRT (not sure if this works or not?)
 //look here for priority queue implementation? -->http://stackoverflow.com/questions/16111337/declaring-a-priority-queue-in-c-with-a-custom-comparator
 class CompareProcesses {
+public:
 	bool operator()(Process a, Process b) {
 		return a.getBurstTime() < b.getBurstTime();
 	}
@@ -41,6 +42,7 @@ class Simulation {
 	std::string alg;
 	int time;
 	std::queue<Process> readyQueue;
+	std::priority_queue<Process, std::vector<Process>, CompareProcesses> readyQueueSRT;
 	int preemptions;
 	int contextSwitches;
 
