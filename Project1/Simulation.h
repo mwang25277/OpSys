@@ -4,7 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <queue>
+#include <list>
+#include <map>
 #include "Process.h"
 #include "CPU.h"
 
@@ -24,8 +25,7 @@ class Simulation {
 	Simulation(std::vector<Process>& processs, std::string alg_);
 
 	//ACCESSORS
-	void initQueue(); //add processes with arrival time = 0 to queue
-	void checkArrival(); //check for new arrivals
+	void checkArrivals( int i ); //check for new arrivals at time i
 	void outputCalc(); //output the average times and info;
 	
 	void runSimFCFS();
@@ -41,11 +41,10 @@ class Simulation {
 	std::vector<Process> processes;
 	std::string alg;
 	int time;
-	std::queue<Process> readyQueue;
-	std::priority_queue<Process, std::vector<Process>, CompareProcesses> readyQueueSRT;
+	std::list<Process> readyQueue; //used for FCFS and RR
 	int preemptions;
 	int contextSwitches;
-
+	std::map<Process, int> waitTimes; //map to keep track of wait times. 
 	CPU cpu;
 };
 

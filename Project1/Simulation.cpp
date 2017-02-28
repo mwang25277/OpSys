@@ -16,3 +16,27 @@ Simulation::Simulation(std::vector<Process>& processs, std::string alg_) {
 	contextSwitches = 0;
 }
 
+void Simulation::checkArrivals(int i) {
+	for(int x = 0; x < n; x++) {
+		Process p = processes[x];
+		if(p.getArrival() == i) {
+			//output process has arrived
+			std::cout << "time " << i << "ms: Process " << p.getID() << " has arrived. [Q ";
+			if(alg == "SRT") {
+
+			} 
+			else {
+				for(unsigned int y = 0; y < readyQueue.size(); y++) {
+
+				}
+			}
+			//add to ready queue
+		}
+	}
+}
+
+
+void Simulation::runSimFCFS() {
+	checkArrivals(0);
+}
+
