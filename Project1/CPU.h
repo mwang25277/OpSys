@@ -8,26 +8,26 @@ class CPU {
 
 	public:
 	CPU() {
-		state = false;
+		state = "idle";
 		//current = NULL;
 		processArriving = 0;
 		processLeaving = 0;
 	}
 
 	//ACCESSORS
-	bool getState() { return state; }
+	std::string getState() { return state; }
 	int getArrivingTime() { return processArriving; }
 	int getLeavingTime() { return processLeaving; }
 	Process getCurrProcess() { return current; }
 
 	//MODIFIERS
-	void setState(bool state_) { state = state_; }
+	void setState(std::string state_) { state = state_; }
 	void setArrivingTime(int time) { processArriving = time; }
 	void setLeavingTime(int time) { processLeaving = time; }
 	void setCurrProcess(Process p) { current = p; }
 
 	private:
-	bool state; //true = in use, false otherwise
+	std::string state; //"busy", "arriving", "leaving", "idle"
 
 	//for context switches. processArriving = first half, processLeaving = secondHalf
 	int processArriving;

@@ -1,4 +1,5 @@
 #include "Process.h"
+#include "Simulation.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -40,6 +41,10 @@ int main(int argc, char* argv[])
 		Process p = Process(id, arrival, burst, numBursts, io);
 		processes.push_back(p);
 	}
+
+	Simulation fcfs(processes, "fcfs");
+
+	fcfs.runSimFCFS();
 
 
 }

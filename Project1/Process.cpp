@@ -64,6 +64,10 @@ int Process::getInitialIOTime() const {
 	return initialIOTime;
 }
 
+int Process::getWaitTime() const {
+	return waitTime;
+}
+
 //MODIFIERS
 void Process::setState(std::string state_) {
 	state = state_;
@@ -83,4 +87,8 @@ void Process::setNumBursts(int num) {
 
 void Process::setIOTime(int time) {
 	ioTime = time;
+}
+
+void Process::setWaitTime(int time) {
+	waitTime = time;
 }
