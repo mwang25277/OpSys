@@ -10,7 +10,7 @@ Simulation::Simulation(std::vector<Process>& processs, std::string alg_) {
 	t_cs = 6;
 	t_slice = 3;
 	alg = alg_;
-	time = 0;
+	time = -1;
 	preemptions = 0;
 	contextSwitches = 0;
 	CPU cpu;
@@ -21,14 +21,14 @@ Simulation::Simulation(std::vector<Process>& processs, std::string alg_) {
 		processes[p.getID()] = p;
 	}
 
-	// //iterate through processes
-	// std::map<std::string, Process>::iterator itr = processes.begin();
-	// while(itr != processes.end()) {
-	// 	Process p = itr->second;
-	// 	//if a process hasn't completed it's CPU bursts, return false
-	// 	std::cout << p.getID() << "|" << p.getBurstTime() << "|" << p.getNumBursts() << std::endl;
-	// 	itr++;
-	// }
+	//iterate through processes
+	std::map<std::string, Process>::iterator itr = processes.begin();
+	while(itr != processes.end()) {
+		Process p = itr->second;
+		//if a process hasn't completed it's CPU bursts, return false
+		std::cout << p.getID() << "|" << p.getBurstTime() << "|" << p.getNumBursts() << std::endl;
+		itr++;
+	}
 
 }
 
@@ -38,7 +38,7 @@ bool Simulation::isDone() {
 	while(itr != processes.end()) {
 		Process p = itr->second;
 		//if a process hasn't completed it's CPU bursts, return false
-		if(p.getNumBursts() != 0 || p.getBurstTime() != 0) {
+		if(p.getState() != "done" || cpu.getLeavingTime() != 0) {
 			return false;
 		}
 
@@ -92,11 +92,10 @@ void Simulation::runSimFCFS() {
 	
 	std::cout << "time 0ms: Simulator started for FCFS [Q <empty>]" << std::endl;
 	while(!isDone()) {
+		time++;
 		checkArrivals(time);
-		//std::cout << cpu.getState() << std::endl;
-		//if the cpu is not being used
 
-				//iterate through all processes and decrement IO times for the processes that are blocked
+		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
 		while(itr != processes.end()) {
 			Process p = itr->second;
@@ -113,8 +112,8 @@ void Simulation::runSimFCFS() {
 
 			itr++;
 		}
-
-
+		//std::cout << cpu.getState() << std::endl;
+		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
 			if(!readyQueue.empty()) {
 				//start a process
@@ -175,11 +174,21 @@ void Simulation::runSimFCFS() {
 				}
 				//cpu.setCurrProcess(NULL);
 			}
+			if(cpu.getState() == "idle") {
+				if(!readyQueue.empty()) {
+					//start a process
+					Process toAdd = readyQueue.front();
+					readyQueue.pop_front();
+					cpu.setCurrProcess(toAdd);
+					cpu.setState("arriving");
+					cpu.setArrivingTime(t_cs / 2);
+				}
+			}
 		}
 
-		
-
-		time++;
 	}
+
+	std::cout << "time " << time << "ms: Simulator ended for FCFS\n\n";
+
 }
 
