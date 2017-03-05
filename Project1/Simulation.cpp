@@ -396,8 +396,13 @@ void Simulation::runSimRR() {
 			cpu.setArrivingTime(cpu.getArrivingTime() - 1);
 			if(cpu.getArrivingTime() == 0) {
 				cpu.setState("busy");
-				std::cout << "time " << time << "ms: Process " << cpu.getCurrProcess().getID() << " started using the CPU " << outputQueue();
 				Process p = cpu.getCurrProcess();
+				if(cpu.getCurrProcess().getBurstTime() != p.getInitialBurstTime()) {
+					std::cout << "time " << time << "ms: Process " << p.getID() << " started using the CPU ";
+					std::cout << "with " << p.getBurstTime() << "ms remaining " << outputQueue();
+				}
+				else 
+					std::cout << "time " << time << "ms: Process " << p.getID() << " started using the CPU " << outputQueue();
 				p.setState("running");
 				processes[p.getID()] = p;
 			}
@@ -416,9 +421,12 @@ void Simulation::runSimRR() {
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " completed a CPU burst; ";
-					std::cout << curr.getNumBursts() << " to go " << outputQueue();
+					if(curr.getNumBursts() > 1)
+						std::cout << curr.getNumBursts() << " bursts to go " << outputQueue();
+					else if(curr.getNumBursts() == 1) 
+						std::cout << curr.getNumBursts() << " burst to go " << outputQueue();
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time + curr.getIOTime() + t_cs / 2;
-					std::cout << " " << outputQueue();
+					std::cout << "ms " << outputQueue();
 					curr.setBurstTime(curr.getInitialBurstTime()); //reset burst time
 				}
 				cpu.setState("leaving");
@@ -428,7 +436,7 @@ void Simulation::runSimRR() {
 			}
 			if(t_slice == 0) {
 				if(readyQueue.empty()) {
-					std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty" << outputQueue();
+					std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty " << outputQueue();
 				}
 				else {
 					std::cout << "time " << time << "ms: Time slice expired; process " << curr.getID() << " preempted with " << curr.getBurstTime() << "ms to go " << outputQueue();
@@ -470,6 +478,6 @@ void Simulation::runSimRR() {
 
 	}
 
-	std::cout << "time " << time << "ms: Simulator ended for RR\n\n";
+	std::cout << "time " << time << "ms: Simulator ended for RR\n";
 
 }
