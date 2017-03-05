@@ -39,7 +39,9 @@ class Simulation {
 	int n;
 	int m;
 	int t_cs;
-	int t_slice;
+	int t_slice; //this value gets decremented
+	int initial_t_slice; //this value will never change
+	
 	//std::vector<Process> processes;
 	std::map<std::string, Process> processes; //map of processes { <id, Process> ...}
 	std::string alg;

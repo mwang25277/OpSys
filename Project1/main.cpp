@@ -48,5 +48,8 @@ int main(int argc, char* argv[])
 	Simulation srt(processes, "srt");
 	srt.runSimSRT();
 
+	Simulation rr(processes, "rr");
+	rr.runSimRR();
+
 
 }
