@@ -5,15 +5,15 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <algorithm>
 #include <map>
 #include "Process.h"
 #include "CPU.h"
 
 //class used to sort priority queue for SRT (not sure if this works or not?)
 //look here for priority queue implementation? -->http://stackoverflow.com/questions/16111337/declaring-a-priority-queue-in-c-with-a-custom-comparator
-class CompareProcesses {
-public:
-	bool operator()(Process a, Process b) {
+struct CompareProcesses {
+	bool operator ()(const Process &a, const Process &b) {
 		return a.getBurstTime() < b.getBurstTime();
 	}
 };

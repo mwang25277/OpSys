@@ -43,8 +43,10 @@ int main(int argc, char* argv[])
 	}
 
 	Simulation fcfs(processes, "fcfs");
-
 	fcfs.runSimFCFS();
+	
+	Simulation srt(processes, "srt");
+	srt.runSimSRT();
 
 
 }
