@@ -229,6 +229,34 @@ void Simulation::runSimSRT() {
 		time++;
 		Process curr = cpu.getCurrProcess();
 
+		//iterate through all processes and decrement IO times for the processes that are blocked
+		std::map<std::string, Process>::iterator itr = processes.begin();
+		while(itr != processes.end()) {
+			Process p = itr->second;
+			if(p.getState() == "blocked") {
+				p.setIOTime(p.getIOTime() - 1);
+				if(p.getIOTime() == 0) {
+					p.setState("ready");
+					p.setIOTime(p.getInitialIOTime());
+					if(p.getBurstTime() < curr.getBurstTime()) {
+						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O and will preempt " << curr.getID() << " " << outputQueue();
+						cpu.setCurrProcess(p);
+					}
+					else {
+						readyQueue.push_back(p);
+						CompareProcesses cp;
+						std::sort(readyQueue.begin(), readyQueue.end(), cp);
+						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
+					}
+				}
+				itr->second = p;
+			}
+
+			itr++;
+		}
+
+		checkArrivals(time);
+		
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
@@ -333,34 +361,6 @@ void Simulation::runSimSRT() {
 				}
 			}
 		}
-
-		//iterate through all processes and decrement IO times for the processes that are blocked
-		std::map<std::string, Process>::iterator itr = processes.begin();
-		while(itr != processes.end()) {
-			Process p = itr->second;
-			if(p.getState() == "blocked") {
-				p.setIOTime(p.getIOTime() - 1);
-				if(p.getIOTime() == 0) {
-					p.setState("ready");
-					p.setIOTime(p.getInitialIOTime());
-					if(p.getBurstTime() < curr.getBurstTime()) {
-						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O and will preempt " << curr.getID() << " " << outputQueue();
-						cpu.setCurrProcess(p);
-					}
-					else {
-						readyQueue.push_back(p);
-						CompareProcesses cp;
-						std::sort(readyQueue.begin(), readyQueue.end(), cp);
-						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
-					}
-				}
-				itr->second = p;
-			}
-
-			itr++;
-		}
-
-		checkArrivals(time);
 	}
 
 	std::cout << "time " << time << "ms: Simulator ended for SRT\n\n";
