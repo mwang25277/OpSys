@@ -1,3 +1,11 @@
+/*
+	OpSys Project 1
+
+	Max Wang (wangm13)
+	Chris Lipscomb (lipscc)
+	
+*/
+
 #ifndef __Simulation_h_
 #define __Simulation_h_
 

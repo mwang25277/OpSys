@@ -1,3 +1,11 @@
+/*
+	OpSys Project 1
+
+	Max Wang (wangm13)
+	Chris Lipscomb (lipscc)
+	
+*/
+
 #ifndef __CPU_h_
 #define __CPU_h_
 

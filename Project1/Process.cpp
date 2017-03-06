@@ -1,3 +1,11 @@
+/*
+	OpSys Project 1
+
+	Max Wang (wangm13)
+	Chris Lipscomb (lipscc)
+	
+*/
+
 #include "Process.h"
 
 Process::Process() {

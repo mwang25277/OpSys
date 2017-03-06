@@ -1,3 +1,11 @@
+/*
+	OpSys Project 1
+
+	Max Wang (wangm13)
+	Chris Lipscomb (lipscc)
+	
+*/
+
 #include "Simulation.h"
 
 Simulation::Simulation() {
@@ -110,7 +118,6 @@ void Simulation::runSimFCFS() {
 	std::cout << "time 0ms: Simulator started for FCFS [Q <empty>]" << std::endl;
 	while(!isDone()) {
 		time++;
-		checkArrivals(time);
 
 		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
@@ -129,6 +136,10 @@ void Simulation::runSimFCFS() {
 
 			itr++;
 		}
+
+		checkArrivals(time);
+
+
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
@@ -218,7 +229,6 @@ void Simulation::runSimSRT() {
 	while(!isDone()) {
 		time++;
 		Process curr = cpu.getCurrProcess();
-		checkArrivals(time);
 
 		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
@@ -245,6 +255,10 @@ void Simulation::runSimSRT() {
 
 			itr++;
 		}
+
+		checkArrivals(time);
+
+
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
@@ -360,8 +374,6 @@ void Simulation::runSimRR() {
 	std::cout << "time 0ms: Simulator started for RR [Q <empty>]" << std::endl;
 	while(!isDone()) {
 		time++;
-		checkArrivals(time);
-
 		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
 		while(itr != processes.end()) {
@@ -379,6 +391,9 @@ void Simulation::runSimRR() {
 
 			itr++;
 		}
+
+		checkArrivals(time);
+
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
@@ -405,6 +420,7 @@ void Simulation::runSimRR() {
 					std::cout << "time " << time << "ms: Process " << p.getID() << " started using the CPU " << outputQueue();
 				p.setState("running");
 				processes[p.getID()] = p;
+				cpu.setCurrProcess(p);
 			}
 		}
 
@@ -439,9 +455,10 @@ void Simulation::runSimRR() {
 					std::cout << "time " << time << "ms: Time slice expired; no preemption because ready queue is empty " << outputQueue();
 				}
 				else {
-					std::cout << "time " << time << "ms: Time slice expired; process " << curr.getID() << " preempted with " << curr.getBurstTime() << "ms to go " << outputQueue();
 					preemptions++;
 					readyQueue.push_back(curr);
+					curr.setState("ready");
+					std::cout << "time " << time << "ms: Time slice expired; process " << curr.getID() << " preempted with " << curr.getBurstTime() << "ms to go " << outputQueue();
 					cpu.setState("leaving");
 					cpu.setLeavingTime(t_cs / 2);
 				}
@@ -459,7 +476,9 @@ void Simulation::runSimRR() {
 				cpu.setState("idle");
 				Process p = cpu.getCurrProcess();
 				if(p.getNumBursts() != 0) {
-					p.setState("blocked");
+					if(p.getState() != "ready") {
+						p.setState("blocked");
+					}
 					processes[p.getID()] = p;
 				}
 				//cpu.setCurrProcess(NULL);

@@ -4,6 +4,14 @@
 #include <iostream>
 #include <string>
 
+/*
+	OpSys Project 1
+
+	Max Wang (wangm13)
+	Chris Lipscomb (lipscc)
+	
+*/
+
 class Process {
 
 	public:
