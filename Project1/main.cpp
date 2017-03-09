@@ -9,6 +9,7 @@
 #include "Process.h"
 #include "Simulation.h"
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <cstdlib>
@@ -18,6 +19,7 @@
 int main(int argc, char* argv[]) 
 {
 	std::ifstream inputText(argv[1]); //opens input.txt
+    std::ofstream output(argv[2]);
 
 	std::string x; //input variable
 	char v;
@@ -59,14 +61,38 @@ int main(int argc, char* argv[])
 
 	}
 
-	// Simulation fcfs(processes, "fcfs");
-	// fcfs.runSimFCFS();
+	Simulation fcfs(processes, "fcfs");
+	fcfs.runSimFCFS();
 	
-	// Simulation srt(processes, "srt");
-	// srt.runSimSRT();
+	Simulation srt(processes, "srt");
+	srt.runSimSRT();
 
 	Simulation rr(processes, "rr");
 	rr.runSimRR();
-
+    
+    output << std::fixed << "Algorithm FCFS" << std::endl;
+    output << std::setprecision(2) << "-- average CPU burst time: " << fcfs.averageCPUBurstTime() << " ms" << std::endl;
+    output << "-- average wait time: " << fcfs.averageWaitTime() << " ms" << std::endl;
+    output << "-- average turnaround time: " << fcfs.averageTurnaroundTime() << " ms" << std::endl;
+    output << "-- total number of context switches: " << fcfs.getContextSwitches() << std::endl;
+    output << "-- total number of preemptions: " << fcfs.getPreemptions() << std::endl;
+    
+    output << "Algorithm SRT" << std::endl;
+    output << "-- average CPU burst time: " << srt.averageCPUBurstTime() << " ms" << std::endl;
+    output << "-- average wait time: " << srt.averageWaitTime() << " ms" << std::endl;
+    output << "-- average turnaround time: " << srt.averageTurnaroundTime() << " ms" << std::endl;
+    output << "-- total number of context switches: " << srt.getContextSwitches()  << std::endl;
+    output << "-- total number of preemptions: " << srt.getPreemptions() << std::endl;
+    
+    output << "Algorithm RR" << std::endl;
+    output << "-- average CPU burst time: " << rr.averageCPUBurstTime() << " ms" << std::endl;
+    output << "-- average wait time: " << rr.averageWaitTime() << " ms" << std::endl;
+    output << "-- average turnaround time: " << rr.averageTurnaroundTime() << " ms" << std::endl;
+    output << "-- total number of context switches: " << rr.getContextSwitches() << std::endl;
+    output << "-- total number of preemptions: " << rr.getPreemptions() << std::endl;
+    
+    output.close();
+    
+    return 0;
 
 }

@@ -1,6 +1,0 @@
-Exception: STATUS_ACCESS_VIOLATION at eip=6115D849
-eax=611BFE20 ebx=0028CC80 ecx=00000000 edx=00000018 esi=00000019 edi=611D8DB2
-ebp=00000018 esp=0028C9A0 program=C:\Users\wangm13\Documents\OpSys\Projects\Project1\a.exe, pid 7192, thread main
-cs=0023 ds=002B es=002B fs=0053 gs=002B ss=002B
-Stack trace:
-Frame     Function  Args

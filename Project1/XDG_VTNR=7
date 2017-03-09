@@ -1,0 +1,18 @@
+Algorithm FCFS
+-- average CPU burst time:  ms
+-- average wait time:  ms
+-- average turnaround time:  ms
+-- total number of context switches: 0
+-- total number of preemptions: 0
+Algorithm SRT
+-- average CPU burst time:  ms
+-- average wait time:  ms
+-- average turnaround time:  ms
+-- total number of context switches: 0
+-- total number of preemptions: 0
+Algorithm RR
+-- average CPU burst time:  ms
+-- average wait time:  ms
+-- average turnaround time:  ms
+-- total number of context switches: 0
+-- total number of preemptions: 0

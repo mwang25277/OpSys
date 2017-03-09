@@ -21,8 +21,10 @@ Process::Process(std::string id_, int arrival_, int cpuBurst_, int numBursts_, i
 	initialBurstTime = cpuBurst_;
 	numBursts = numBursts_;
 	initialNumBursts = numBursts_;
-	ioTime = ioTime_;
+	ioTime = ioTime_ + 1;
 	initialIOTime = ioTime_;
+	waitTime = 0;
+	turnaroundTime = 0;
 
 	totalBurstTime = burstTime * numBursts;
 }
@@ -75,6 +77,9 @@ int Process::getInitialIOTime() const {
 int Process::getWaitTime() const {
 	return waitTime;
 }
+int Process::getTurnaroundTime() const {
+	return turnaroundTime;
+}
 
 //MODIFIERS
 void Process::setState(std::string state_) {
@@ -99,4 +104,8 @@ void Process::setIOTime(int time) {
 
 void Process::setWaitTime(int time) {
 	waitTime = time;
+}
+
+void Process::setTurnaroundTime(int time) {
+	turnaroundTime = time;
 }
