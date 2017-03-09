@@ -94,13 +94,13 @@ void Simulation::checkArrivals(int i) {
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << p.getID() << " arrived and will preempt " << curr.getID() << " " << outputQueue();
-					curr.setState("ready");
+					//curr.setState("ready");
 					cpu.setState("leaving");
 					cpu.setLeavingTime(t_cs / 2);
 					preemptions++;
 					processes[curr.getID()] = curr;
 					cpu.setCurrProcess(curr);
-					readyQueue.push_back(curr);
+					//readyQueue.push_back(curr);
 					readyQueue.push_back(p);
 				}
 				CompareProcesses cp;
@@ -367,6 +367,12 @@ void Simulation::runSimSRT() {
 						p.setState("blocked");
 						p.setBurstTime(p.getInitialBurstTime());
 					}
+					else {
+						p.setState("ready");
+						readyQueue.push_back(p);
+						CompareProcesses cp;
+						std::sort(readyQueue.begin(), readyQueue.end(), cp);
+					}
 				}
 				else 
 					p.setState("done");
@@ -400,16 +406,16 @@ void Simulation::runSimSRT() {
 					p.setIOTime(p.getInitialIOTime() + 1);
 					if(p.getBurstTime() < curr.getBurstTime()) {
 						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O and will preempt " << curr.getID() << " " << outputQueue();
-						curr.setState("ready");
+						//curr.setState("ready");
 						cpu.setState("leaving");
 						cpu.setLeavingTime(t_cs / 2);
 						preemptions++;
 						processes[curr.getID()] = curr;
-						readyQueue.push_back(curr);
+						//readyQueue.push_back(curr);
 						readyQueue.push_back(p);
 						CompareProcesses cp;
 						std::sort(readyQueue.begin(), readyQueue.end(), cp);
-						cpu.setCurrProcess(p);
+						cpu.setCurrProcess(curr);
 					}
 					else {
 						readyQueue.push_back(p);
@@ -425,6 +431,7 @@ void Simulation::runSimSRT() {
 		}
 
 		checkArrivals(time);
+		std::flush(std::cout);
 	}
 
 	std::cout << "time " << time << "ms: Simulator ended for SRT\n\n";
