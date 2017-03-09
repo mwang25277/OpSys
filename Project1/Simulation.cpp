@@ -89,15 +89,22 @@ void Simulation::checkArrivals(int i) {
 				Process curr = cpu.getCurrProcess();
 				if(cpu.getState() == "idle" || curr.getBurstTime() < p.getBurstTime()) {
 					readyQueue.push_back(p);
-					CompareProcesses cp;
-					std::sort(readyQueue.begin(), readyQueue.end(), cp);
 					std::cout << "time " << i << "ms: Process " << p.getID() << " arrived and added to ready queue ";
 					std::cout << outputQueue();
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << p.getID() << " arrived and will preempt " << curr.getID() << " " << outputQueue();
-					cpu.setCurrProcess(p);
+					curr.setState("ready");
+					cpu.setState("leaving");
+					cpu.setLeavingTime(t_cs / 2);
+					preemptions++;
+					processes[curr.getID()] = curr;
+					cpu.setCurrProcess(curr);
+					readyQueue.push_back(curr);
+					readyQueue.push_back(p);
 				}
+				CompareProcesses cp;
+				std::sort(readyQueue.begin(), readyQueue.end(), cp);
 			}
 			else {
 				readyQueue.push_back(p);
@@ -105,10 +112,22 @@ void Simulation::checkArrivals(int i) {
 				std::cout << "time " << i << "ms: Process " << p.getID() << " arrived and added to ready queue ";
 				std::cout << outputQueue();
 			}
-			
+			processes[p.getID()] = p;
 		}
 
 		itr++;
+	}
+	if(cpu.getState() == "idle") {
+		if(!readyQueue.empty()) {
+			Process toAdd = readyQueue.front();
+			toAdd = processes[toAdd.getID()];
+			toAdd.setState("running");
+			processes[toAdd.getID()] = toAdd;
+			readyQueue.pop_front();
+			cpu.setCurrProcess(toAdd);
+			cpu.setState("arriving");
+			cpu.setArrivingTime(t_cs / 2);
+		}
 	}
 }
 
@@ -118,6 +137,24 @@ void Simulation::runSimFCFS() {
 	std::cout << "time 0ms: Simulator started for FCFS [Q <empty>]" << std::endl;
 	while(!isDone()) {
 		time++;
+		if(time != 0) {
+			Process curr = cpu.getCurrProcess();
+			if(curr.getState() == "running") {
+				curr = processes[curr.getID()];
+				curr.setTurnaroundTime(curr.getTurnaroundTime() + 1);
+				processes[curr.getID()] = curr;
+			}
+		}
+		
+		std::deque<Process>::iterator rqitr = readyQueue.begin();
+		while(rqitr != readyQueue.end()) {
+			Process p = *rqitr;
+			p = processes[p.getID()];
+			p.setWaitTime(p.getWaitTime() + 1);
+			p.setTurnaroundTime(p.getTurnaroundTime() + 1);
+			processes[p.getID()] = p;
+			rqitr++;
+		}
 
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
@@ -125,6 +162,9 @@ void Simulation::runSimFCFS() {
 			if(!readyQueue.empty()) {
 				//start a process
 				Process toAdd = readyQueue.front();
+				toAdd = processes[toAdd.getID()];
+				toAdd.setState("running");
+				processes[toAdd.getID()] = toAdd;
 				readyQueue.pop_front();
 				cpu.setCurrProcess(toAdd);
 				cpu.setState("arriving");
@@ -137,20 +177,18 @@ void Simulation::runSimFCFS() {
 			if(cpu.getArrivingTime() == 0) {
 				cpu.setState("busy");
 				std::cout << "time " << time << "ms: Process " << cpu.getCurrProcess().getID() << " started using the CPU " << outputQueue();
-				Process p = cpu.getCurrProcess();
-				p.setState("running");
-				processes[p.getID()] = p;
+               	contextSwitches++;
 			}
 		}
 
 		else if(cpu.getState() == "busy") {
 			Process curr = cpu.getCurrProcess();
+			curr = processes[curr.getID()];
 			curr.setBurstTime(curr.getBurstTime() - 1);
 			if(curr.getBurstTime() == 0) {
 				curr.setNumBursts(curr.getNumBursts() - 1);
 				if(curr.getNumBursts() == 0) {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " terminated " << outputQueue();
-					curr.setState("done");
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " completed a CPU burst; ";
@@ -158,7 +196,7 @@ void Simulation::runSimFCFS() {
 						std::cout << curr.getNumBursts() << " bursts to go " << outputQueue();
 					else if(curr.getNumBursts() == 1) 
 						std::cout << curr.getNumBursts() << " burst to go " << outputQueue();
-					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time + curr.getIOTime() + t_cs / 2;
+					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time - 1 + curr.getIOTime() + t_cs / 2;
 					std::cout << "ms " << outputQueue();
 					curr.setBurstTime(curr.getInitialBurstTime()); //reset burst time
 				}
@@ -178,16 +216,24 @@ void Simulation::runSimFCFS() {
 			if(cpu.getLeavingTime() == 0) {
 				cpu.setState("idle");
 				Process p = cpu.getCurrProcess();
+				p = processes[p.getID()];
 				if(p.getNumBursts() != 0) {
 					p.setState("blocked");
-					processes[p.getID()] = p;
 				}
+				else {
+					p.setState("done");
+				}
+				processes[p.getID()] = p;
+				cpu.setCurrProcess(p);
 				//cpu.setCurrProcess(NULL);
 			}
 			if(cpu.getState() == "idle") {
 				if(!readyQueue.empty()) {
 					//start a process
 					Process toAdd = readyQueue.front();
+					toAdd = processes[toAdd.getID()];
+					toAdd.setState("running");
+					processes[toAdd.getID()] = toAdd;
 					readyQueue.pop_front();
 					cpu.setCurrProcess(toAdd);
 					cpu.setState("arriving");
@@ -195,7 +241,7 @@ void Simulation::runSimFCFS() {
 				}
 			}
 		}
-
+		
 		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
 		while(itr != processes.end()) {
@@ -204,13 +250,12 @@ void Simulation::runSimFCFS() {
 				p.setIOTime(p.getIOTime() - 1);
 				if(p.getIOTime() == 0) {
 					p.setState("ready");
-					p.setIOTime(p.getInitialIOTime());
+					p.setIOTime(p.getInitialIOTime() + 1);
 					readyQueue.push_back(p);
 					std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
 				}
-				itr->second = p;
 			}
-
+			processes[p.getID()] = p;
 			itr++;
 		}
 
@@ -228,34 +273,23 @@ void Simulation::runSimSRT() {
 	while(!isDone()) {
 		time++;
 		Process curr = cpu.getCurrProcess();
-
-		//iterate through all processes and decrement IO times for the processes that are blocked
-		std::map<std::string, Process>::iterator itr = processes.begin();
-		while(itr != processes.end()) {
-			Process p = itr->second;
-			if(p.getState() == "blocked") {
-				p.setIOTime(p.getIOTime() - 1);
-				if(p.getIOTime() == 0) {
-					p.setState("ready");
-					p.setIOTime(p.getInitialIOTime());
-					if(p.getBurstTime() < curr.getBurstTime()) {
-						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O and will preempt " << curr.getID() << " " << outputQueue();
-						cpu.setCurrProcess(p);
-					}
-					else {
-						readyQueue.push_back(p);
-						CompareProcesses cp;
-						std::sort(readyQueue.begin(), readyQueue.end(), cp);
-						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
-					}
-				}
-				itr->second = p;
+		if(time != 0) {
+			if(curr.getState() == "running") {
+				curr = processes[curr.getID()];
+				curr.setTurnaroundTime(curr.getTurnaroundTime() + 1);
+				processes[curr.getID()] = curr;
 			}
-
-			itr++;
 		}
-
-		checkArrivals(time);
+		
+		std::deque<Process>::iterator rqitr = readyQueue.begin();
+		while(rqitr != readyQueue.end()) {
+			Process p = *rqitr;
+			p = processes[p.getID()];
+			p.setWaitTime(p.getWaitTime() + 1);
+			p.setTurnaroundTime(p.getTurnaroundTime() + 1);
+			processes[p.getID()] = p;
+			rqitr++;
+		}
 		
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
@@ -263,6 +297,9 @@ void Simulation::runSimSRT() {
 			if(!readyQueue.empty()) {
 				//start a process
 				Process toAdd = readyQueue.front();
+				toAdd = processes[toAdd.getID()];
+				toAdd.setState("running");
+				processes[toAdd.getID()] = toAdd;
 				readyQueue.pop_front();
 				cpu.setCurrProcess(toAdd);
 				cpu.setState("arriving");
@@ -274,36 +311,26 @@ void Simulation::runSimSRT() {
 			cpu.setArrivingTime(cpu.getArrivingTime() - 1);
 			if(cpu.getArrivingTime() == 0) {
 				cpu.setState("busy");
-				if(cpu.getCurrProcess().getBurstTime() != cpu.getCurrProcess().getInitialBurstTime()) {
-					std::cout << "time " << time << "ms: Process " << cpu.getCurrProcess().getID() << " started using the CPU ";
+				curr = processes[curr.getID()];
+				if(curr.getBurstTime() != curr.getInitialBurstTime()) {
+					std::cout << "time " << time << "ms: Process " << curr.getID() << " started using the CPU ";
 					std::cout << "with " << cpu.getCurrProcess().getBurstTime() << "ms remaining " << outputQueue();
 				}
 				else 
-					std::cout << "time " << time << "ms: Process " << cpu.getCurrProcess().getID() << " started using the CPU " << outputQueue();
-				Process p = cpu.getCurrProcess();
-				p.setState("running");
-				processes[p.getID()] = p;
+					std::cout << "time " << time << "ms: Process " << curr.getID() << " started using the CPU " << outputQueue();
+				curr.setState("running");
+				processes[curr.getID()] = curr;
+                contextSwitches++;
 			}
 		}
 
 		else if(cpu.getState() == "busy") {
+			curr = processes[curr.getID()];
 			curr.setBurstTime(curr.getBurstTime() - 1);
-			//Check if the next process has a shorter burst time. If so, preempt the current process.
-			if(curr.getID() != cpu.getCurrProcess().getID()) {
-				readyQueue.push_back(curr);
-				CompareProcesses cp;
-				std::sort(readyQueue.begin(), readyQueue.end(), cp);
-				cpu.setState("leaving");
-				cpu.setLeavingTime(t_cs / 2);
-				preemptions++;
-				processes[curr.getID()] = curr;
-				continue;
-			}
 			if(curr.getBurstTime() == 0) {
 				curr.setNumBursts(curr.getNumBursts() - 1);
 				if(curr.getNumBursts() == 0) {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " terminated " << outputQueue();
-					curr.setState("done");
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " completed a CPU burst; ";
@@ -311,7 +338,7 @@ void Simulation::runSimSRT() {
 						std::cout << curr.getNumBursts() << " bursts to go " << outputQueue();
 					else if(curr.getNumBursts() == 1) 
 						std::cout << curr.getNumBursts() << " burst to go " << outputQueue();
-					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time + curr.getIOTime() + t_cs / 2;
+					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time - 1 + curr.getIOTime() + t_cs / 2;
 					std::cout << "ms " << outputQueue();
 				}
 				if(!readyQueue.empty()) {
@@ -332,28 +359,28 @@ void Simulation::runSimSRT() {
 		else if(cpu.getState() == "leaving") {
 			cpu.setLeavingTime(cpu.getLeavingTime() - 1);
 			if(cpu.getLeavingTime() == 0) {
+				cpu.setState("idle");
 				Process p = cpu.getCurrProcess();
-				//If no process has been set as the new current process
-				if(p.getBurstTime() == 0) {
-					cpu.setState("idle");
-					if(p.getNumBursts() != 0) {
-						p.setBurstTime(p.getInitialBurstTime()); //Reset burst time
+				p = processes[p.getID()];
+				if(p.getNumBursts() != 0) {
+					if(p.getBurstTime() == 0) {
 						p.setState("blocked");
-						processes[p.getID()] = p;
+						p.setBurstTime(p.getInitialBurstTime());
 					}
-					//cpu.setCurrProcess(NULL);
 				}
-				//Else a new process has been set
-				else {
-					cpu.setState("arriving");
-					cpu.setArrivingTime(t_cs / 2);
-				}
+				else 
+					p.setState("done");
+				processes[p.getID()] = p;
+				cpu.setCurrProcess(p);
+				//cpu.setCurrProcess(NULL);
 			}
-			//In case a new process arrived just as all the others had finished.
 			if(cpu.getState() == "idle") {
 				if(!readyQueue.empty()) {
 					//start a process
 					Process toAdd = readyQueue.front();
+					toAdd = processes[toAdd.getID()];
+					toAdd.setState("running");
+					processes[toAdd.getID()] = toAdd;
 					readyQueue.pop_front();
 					cpu.setCurrProcess(toAdd);
 					cpu.setState("arriving");
@@ -361,6 +388,43 @@ void Simulation::runSimSRT() {
 				}
 			}
 		}
+		
+		//iterate through all processes and decrement IO times for the processes that are blocked
+		std::map<std::string, Process>::iterator itr = processes.begin();
+		while(itr != processes.end()) {
+			Process p = itr->second;
+			if(p.getState() == "blocked") {
+				p.setIOTime(p.getIOTime() - 1);
+				if(p.getIOTime() == 0) {
+					p.setState("ready");
+					p.setIOTime(p.getInitialIOTime() + 1);
+					if(p.getBurstTime() < curr.getBurstTime()) {
+						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O and will preempt " << curr.getID() << " " << outputQueue();
+						curr.setState("ready");
+						cpu.setState("leaving");
+						cpu.setLeavingTime(t_cs / 2);
+						preemptions++;
+						processes[curr.getID()] = curr;
+						readyQueue.push_back(curr);
+						readyQueue.push_back(p);
+						CompareProcesses cp;
+						std::sort(readyQueue.begin(), readyQueue.end(), cp);
+						cpu.setCurrProcess(p);
+					}
+					else {
+						readyQueue.push_back(p);
+						CompareProcesses cp;
+						std::sort(readyQueue.begin(), readyQueue.end(), cp);
+						std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
+					}
+				}
+			}
+			processes[p.getID()] = p;
+
+			itr++;
+		}
+
+		checkArrivals(time);
 	}
 
 	std::cout << "time " << time << "ms: Simulator ended for SRT\n\n";
@@ -372,13 +436,35 @@ void Simulation::runSimRR() {
 	std::cout << "time 0ms: Simulator started for RR [Q <empty>]" << std::endl;
 	while(!isDone()) {
 		time++;
+		
+		if(time != 0) {
+			Process curr = cpu.getCurrProcess();
+			if(curr.getState() == "running") {
+				curr = processes[curr.getID()];
+				curr.setTurnaroundTime(curr.getTurnaroundTime() + 1);
+				processes[curr.getID()] = curr;
+			}
+		}
 
+		std::deque<Process>::iterator rqitr = readyQueue.begin();
+		while(rqitr != readyQueue.end()) {
+			Process p = *rqitr;
+			p = processes[p.getID()];
+			p.setWaitTime(p.getWaitTime() + 1);
+			p.setTurnaroundTime(p.getTurnaroundTime() + 1);
+			processes[p.getID()] = p;
+			rqitr++;
+		}
+		
 		//std::cout << cpu.getState() << std::endl;
 		//if the cpu is not being used
 		if(cpu.getState() == "idle") {
 			if(!readyQueue.empty()) {
 				//start a process
 				Process toAdd = readyQueue.front();
+				toAdd = processes[toAdd.getID()];
+				toAdd.setState("running");
+				processes[toAdd.getID()] = toAdd;
 				readyQueue.pop_front();
 				cpu.setCurrProcess(toAdd);
 				cpu.setState("arriving");
@@ -391,6 +477,7 @@ void Simulation::runSimRR() {
 			if(cpu.getArrivingTime() == 0) {
 				cpu.setState("busy");
 				Process p = cpu.getCurrProcess();
+				p = processes[p.getID()];
 				if(cpu.getCurrProcess().getBurstTime() != p.getInitialBurstTime()) {
 					std::cout << "time " << time << "ms: Process " << p.getID() << " started using the CPU ";
 					std::cout << "with " << p.getBurstTime() << "ms remaining " << outputQueue();
@@ -400,11 +487,13 @@ void Simulation::runSimRR() {
 				p.setState("running");
 				processes[p.getID()] = p;
 				cpu.setCurrProcess(p);
+               	contextSwitches++;
 			}
 		}
 
 		else if(cpu.getState() == "busy") {
 			Process curr = cpu.getCurrProcess();
+			curr = processes[curr.getID()];
 			curr.setBurstTime(curr.getBurstTime() - 1);
 			t_slice--;
 			if(curr.getBurstTime() == 0) {
@@ -412,7 +501,6 @@ void Simulation::runSimRR() {
 				curr.setNumBursts(curr.getNumBursts() - 1);
 				if(curr.getNumBursts() == 0) {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " terminated " << outputQueue();
-					curr.setState("done");
 				}
 				else {
 					std::cout << "time " << time << "ms: Process " << curr.getID() << " completed a CPU burst; ";
@@ -420,9 +508,8 @@ void Simulation::runSimRR() {
 						std::cout << curr.getNumBursts() << " bursts to go " << outputQueue();
 					else if(curr.getNumBursts() == 1) 
 						std::cout << curr.getNumBursts() << " burst to go " << outputQueue();
-					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time + curr.getIOTime() + t_cs / 2;
+					std::cout << "time " << time << "ms: Process " << curr.getID() << " switching out of CPU; will block on I/O until time " << time - 1 + curr.getIOTime() + t_cs / 2;
 					std::cout << "ms " << outputQueue();
-					curr.setBurstTime(curr.getInitialBurstTime()); //reset burst time
 				}
 				cpu.setState("leaving");
 				cpu.setLeavingTime(t_cs / 2);
@@ -435,9 +522,9 @@ void Simulation::runSimRR() {
 				}
 				else {
 					preemptions++;
+					std::cout << "time " << time << "ms: Time slice expired; process " << curr.getID() << " preempted with " << curr.getBurstTime() << "ms to go " << outputQueue();
 					readyQueue.push_back(curr);
 					curr.setState("ready");
-					std::cout << "time " << time << "ms: Time slice expired; process " << curr.getID() << " preempted with " << curr.getBurstTime() << "ms to go " << outputQueue();
 					cpu.setState("leaving");
 					cpu.setLeavingTime(t_cs / 2);
 				}
@@ -454,18 +541,26 @@ void Simulation::runSimRR() {
 			if(cpu.getLeavingTime() == 0) {
 				cpu.setState("idle");
 				Process p = cpu.getCurrProcess();
+				p = processes[p.getID()];
 				if(p.getNumBursts() != 0) {
-					if(p.getState() != "ready") {
+					if(p.getBurstTime() == 0) {
 						p.setState("blocked");
+						p.setBurstTime(p.getInitialBurstTime());
 					}
-					processes[p.getID()] = p;
 				}
+				else 
+					p.setState("done");
+				processes[p.getID()] = p;
+				cpu.setCurrProcess(p);
 				//cpu.setCurrProcess(NULL);
 			}
 			if(cpu.getState() == "idle") {
 				if(!readyQueue.empty()) {
 					//start a process
 					Process toAdd = readyQueue.front();
+					toAdd = processes[toAdd.getID()];
+					toAdd.setState("running");
+					processes[toAdd.getID()] = toAdd;
 					readyQueue.pop_front();
 					cpu.setCurrProcess(toAdd);
 					cpu.setState("arriving");
@@ -473,7 +568,7 @@ void Simulation::runSimRR() {
 				}
 			}
 		}
-
+		
 		//iterate through all processes and decrement IO times for the processes that are blocked
 		std::map<std::string, Process>::iterator itr = processes.begin();
 		while(itr != processes.end()) {
@@ -482,21 +577,57 @@ void Simulation::runSimRR() {
 				p.setIOTime(p.getIOTime() - 1);
 				if(p.getIOTime() == 0) {
 					p.setState("ready");
-					p.setIOTime(p.getInitialIOTime());
+					p.setIOTime(p.getInitialIOTime() + 1);
 					readyQueue.push_back(p);
 					std::cout << "time " << time << "ms: Process " << p.getID() << " completed I/O; added to ready queue " << outputQueue();
 				}
-				itr->second = p;
 			}
-
+			processes[p.getID()] = p;
 			itr++;
 		}
 
 		checkArrivals(time);
-
-
 	}
 
 	std::cout << "time " << time << "ms: Simulator ended for RR\n";
 
+}
+
+double Simulation::averageCPUBurstTime() {
+	int numBursts = 0;
+	int burstTime = 0;
+	std::map<std::string, Process>::iterator itr = processes.begin();
+	while(itr != processes.end()) {
+		Process p = itr->second;
+		numBursts += p.getInitialNumBursts();
+		burstTime += p.getInitialBurstTime() * p.getInitialNumBursts();
+		itr++;
+	}
+	return (double)burstTime / (double)numBursts;
+}
+
+double Simulation::averageTurnaroundTime() {
+	int totalTurnaroundTime = 0;
+	int numBursts = 0;
+	std::map<std::string, Process>::iterator itr = processes.begin();
+	while(itr != processes.end()) {
+		Process p = itr->second;
+		totalTurnaroundTime += p.getTurnaroundTime();
+		numBursts += p.getInitialNumBursts();
+		itr++;
+	}
+	return (double)totalTurnaroundTime / (double)numBursts;
+}
+
+double Simulation::averageWaitTime() {
+	int totalWaitingTime = 0;
+	int numBursts = 0;
+	std::map<std::string, Process>::iterator itr = processes.begin();
+	while(itr != processes.end()) {
+		Process p = itr->second;
+		totalWaitingTime += p.getWaitTime();
+		numBursts += p.getInitialNumBursts();
+		itr++;
+	}
+	return (double)totalWaitingTime / (double)numBursts;
 }

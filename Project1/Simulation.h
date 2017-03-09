@@ -37,10 +37,16 @@ class Simulation {
 	void checkArrivals( int i ); //check for new arrivals at time i
 	std::string outputQueue(); //output the queue contents
 	void outputCalc(); //output the average times and info;
+    int getPreemptions() { return preemptions; }
+    int getContextSwitches() { return contextSwitches; }
 	
 	void runSimFCFS();
 	void runSimSRT();
 	void runSimRR();
+	
+	double averageCPUBurstTime();
+	double averageTurnaroundTime();
+	double averageWaitTime();
 
 
 	private:

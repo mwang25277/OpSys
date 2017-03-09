@@ -30,6 +30,7 @@ class Process {
 	int getInitialNumBursts() const;
 	int getInitialIOTime() const;
 	int getWaitTime() const;
+	int getTurnaroundTime() const;
 	int getTotalBurstTime() const;
 
 	//MODIFIERS
@@ -39,6 +40,7 @@ class Process {
 	void setNumBursts(int num);
 	void setIOTime(int time);
 	void setWaitTime(int time);
+	void setTurnaroundTime(int time);
 
 
 	private:
@@ -53,6 +55,7 @@ class Process {
 		int numBursts;
 		int ioTime;
 		int waitTime;
+		int turnaroundTime;
 
 
 		//initial values used to reset the processes
