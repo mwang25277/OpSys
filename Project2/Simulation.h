@@ -25,10 +25,12 @@ class Simulation {
 
 	bool isDone();
 	void checkArrivals( int i ); //check for new arrivals at time i
+	void checkRemovals(int i);
 	bool placeProcess(Process p);
 	std::string outputMemory(); //output the memory
 	void updatePartitions();
-	
+	void defragmentation();
+
 	void runNextFit();
 	void runBestFit();
 	void runWorstFit();
@@ -40,10 +42,11 @@ class Simulation {
 	int time;
 	std::vector<Partition> partitions; //blocks of free memory
 	std::vector<std::string> memory;
-	int numFrames;
-	int lineSize;
-	int t_memmove;
-	int totalFreeMemory;
+	int numFrames; //256
+	int lineSize; //32
+	int t_memmove; //time it takes to move a frame, 1
+	int totalFreeMemory; //determines whether we need to skip the process or defragment
+	std::list<std::string> processesPlaced;
 
 };
 

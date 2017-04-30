@@ -7,7 +7,7 @@
 */
 
 #include "Process.h"
-
+#include "Simulation.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -96,17 +96,28 @@ int main(int argc, char* argv[])
 			}
 			
 			Process p = Process(id, frames, arrivalTimes, runTimes);
-			std::cout << id << " " << frames << " " << arrivalTimes.front() << " " << arrivalTimes.size() << " " << runTimes.front() << " " << runTimes.size() << std::endl;
+			//std::cout << id << " " << frames << " " << arrivalTimes.front() << " " << arrivalTimes.size() << " " << runTimes.front() << " " << runTimes.size() << std::endl;
 			processes.push_back(p);
 
 		}
 		
 	}
 	
-	if(numProcesses != processes.size()) {
+	if((unsigned int)numProcesses != processes.size()) {
 		std::cout << "Invalid parsing" << std::endl;
 	}
     
+	Simulation nextFit(processes, "Next-Fit");
+	Simulation bestFit(processes, "Best-Fit");
+	Simulation worstFit(processes, "Worst-Fit");
+
+	nextFit.runNextFit();
+	std::cout << "\n";
+	bestFit.runBestFit();
+	std::cout << "\n";
+	worstFit.runWorstFit();
+	std::cout << "\n";
+
     return 0;
 
 }
