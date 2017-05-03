@@ -12,24 +12,24 @@
 class Partition {
 
 	public:
-	Partition();
-	Partition(int start_, int size_) {
-		start = start_;
-		size = size_;
-	}
+		Partition();
+		Partition(int start_, int size_) {
+			start = start_;
+			size = size_;
+		}
 
-	int getStart() const {
-		return start;
-	}
+		int getStart() const {
+			return start;
+		}
 
-	int getSize() const {
-		return size;
-	}
+		int getSize() const {
+			return size;
+		}
 
 
 	private:
-	int start;
-	int size;
+		int start;
+		int size;
 };
 
 

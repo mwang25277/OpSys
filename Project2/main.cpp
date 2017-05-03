@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
 	Simulation nextFit(processes, "Next-Fit");
 	Simulation bestFit(processes, "Best-Fit");
 	Simulation worstFit(processes, "Worst-Fit");
+	Simulation nonContiguous(processes, "Non-Contiguous");
 
 	nextFit.runNextFit();
 	std::cout << "\n";
@@ -117,6 +118,7 @@ int main(int argc, char* argv[])
 	std::cout << "\n";
 	worstFit.runWorstFit();
 	std::cout << "\n";
+	nonContiguous.runNonContiguous();
 
     return 0;
 

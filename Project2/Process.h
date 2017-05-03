@@ -16,24 +16,24 @@
 class Process {
 
 	public:
-	Process();
-	Process(std::string id_, int frames_, std::list<int>& arrivals_, std::list<int>& runtimes_);
+		Process();
+		Process(std::string id_, int frames_, std::list<int>& arrivals_, std::list<int>& runtimes_);
 
-	//ACCESSORS
-	std::string getID() const;
-	int getFrames() const;
-	int getNextArrival();
-	int getNextRuntime();
-	std::string getState();
-	int getStart();
-	bool isDone();
+		//ACCESSORS
+		std::string getID() const;
+		int getFrames() const;
+		int getNextArrival();
+		int getNextRuntime();
+		std::string getState();
+		int getStart();
+		bool isDone();
 
-	void popArrivals();
-	void popRuntimes();
-	void setState(std::string s);
-	void setStart(int i);
-	void addToArrivals(int i);
-	void decrementRuntime();
+		void popArrivals();
+		void popRuntimes();
+		void setState(std::string s);
+		void setStart(int i);
+		void addToArrivals(int i);
+		void decrementRuntime();
 
 	private:
 		std::string id;

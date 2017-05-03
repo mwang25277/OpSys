@@ -93,7 +93,36 @@ bool bestFitSort(const Partition& a, const Partition& b) {
 
 bool Simulation::placeProcess(Process p) {
 	//place processes based on alg
-	if(alg == "Next-Fit") {
+	if(alg == "Non-Contiguous") {
+		//First ensure that there is enough space for the new process
+		int framesNeeded = p.getFrames();
+		for(int i = 0; i < numFrames; i++) {
+			if(memory[i] == ".")
+				framesNeeded--;
+		}
+		//If framesNeeded is less than or equal to zero, there is enough space to place the process
+		//Otherwise, there isn't, and we must return false
+		if(framesNeeded <= 0) {
+			//Start by placing the process
+			int framesPlaced = 0;
+			for(int i = 0; i < numFrames; i++) {
+				if(memory[i] == ".") {
+					memory[i] = p.getID();
+					framesPlaced++;
+				}
+				if(framesPlaced == p.getFrames())
+					break;
+			}
+			p.setState("running");
+			p.popArrivals();
+			processes[p.getID()] = p;
+			processesPlaced.push_front(p.getID());
+			updatePartitions();
+			return true;
+		}
+		else return false;
+	}
+	else if(alg == "Next-Fit") {
 		//if it's next-fit, we need to do this differently because the process
 		//will probably be placed in the middle of a partition
 		if(!processesPlaced.empty()) {
@@ -273,8 +302,15 @@ void Simulation::checkRemovals(int i) {
 			p.decrementRuntime();
 			if(p.getNextRuntime() == 0) {
 				//std::cout << "Runtime is 0" << std::endl;
-				for(int i = p.getStart(); i < p.getStart() + p.getFrames(); i++) {
-					memory[i] = ".";
+				if(nonContiguous) {
+					for(int i = 0; i < numFrames; i++) {
+						if(memory[i] == p.getID())
+							memory[i] = ".";
+					}
+				}
+				else {
+					for(int i = p.getStart(); i < p.getStart() + p.getFrames(); i++) 
+						memory[i] = ".";
 				}
 				p.setState("");
 				p.popRuntimes();
@@ -340,6 +376,18 @@ void Simulation::runWorstFit() {
 		checkArrivals(time);
 	}
 	std::cout << "time " << time << "ms: Simulator ended (Contiguous -- Worst-Fit)" << std::endl;
+	
+
+}
+
+void Simulation::runNonContiguous() {
+	std::cout << "time 0ms: Simulator started (Non-contiguous)" << std::endl;
+	while(!isDone()) {
+		time++;
+		checkRemovals(time);
+		checkArrivals(time);
+	}
+	std::cout << "time " << time << "ms: Simulator ended (Non-contiguous)" << std::endl;
 	
 
 }
